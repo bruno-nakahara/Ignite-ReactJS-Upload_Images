@@ -19,12 +19,32 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const formValidations = {
     image: {
       // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
+      required: 'Arquivo obrigatório',
+      validate: {
+        lessThan10MB: image => parseInt(image.size) < 10 || 'O arquivo deve ser menor que 10MB',
+        acceptedFormats: image => (/\.(jpeg|png|gif)$/i).test(image.type) || 'Somente são aceitos arquivos PNG, JPEG e GIF', 
+        
+      },
     },
     title: {
       // TODO REQUIRED, MIN AND MAX LENGTH VALIDATIONS
+      required: 'Título obrigatório',
+      minLength: {
+        value: 2,
+        message: "Mínimo de 2 caracteres",
+      },
+      maxLength: {
+        value: 20,
+        message: "Máximo de 20 caracteres",
+      },
     },
     description: {
       // TODO REQUIRED, MAX LENGTH VALIDATIONS
+      required: 'Descrição obrigatório',
+      maxLength: {
+        value: 65,
+        message: "Máximo de 65 caracteres",
+      },
     },
   };
 
@@ -68,19 +88,25 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
           setError={setError}
           trigger={trigger}
           // TODO SEND IMAGE ERRORS
+          error={errors.file}
           // TODO REGISTER IMAGE INPUT WITH VALIDATIONS
+          {...register("file", formValidations.image)}
         />
 
         <TextInput
           placeholder="Título da imagem..."
           // TODO SEND TITLE ERRORS
+          error={errors.title}
           // TODO REGISTER TITLE INPUT WITH VALIDATIONS
+          {...register("title", formValidations.title)}
         />
 
         <TextInput
           placeholder="Descrição da imagem..."
           // TODO SEND DESCRIPTION ERRORS
+          error={errors.description}
           // TODO REGISTER DESCRIPTION INPUT WITH VALIDATIONS
+          {...register("description", formValidations.description)}
         />
       </Stack>
 
@@ -97,3 +123,4 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
     </Box>
   );
 }
+

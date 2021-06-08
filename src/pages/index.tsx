@@ -8,6 +8,21 @@ import { api } from '../services/api';
 import { Loading } from '../components/Loading';
 import { Error } from '../components/Error';
 
+const fetchImages = async ({ pageParam = null }) => {
+  try {
+    const images = await api.get("/api/images", {
+      params: {
+        after: pageParam
+      }
+    })
+    
+    console.log(images)
+  } catch (error) {
+    console.log(error)
+  }
+  
+}
+
 export default function Home(): JSX.Element {
   const {
     data,
@@ -19,8 +34,12 @@ export default function Home(): JSX.Element {
   } = useInfiniteQuery(
     'images',
     // TODO AXIOS REQUEST WITH PARAM
+    fetchImages
     ,
     // TODO GET AND RETURN NEXT PAGE PARAM
+    {
+      getNextPageParam: (lastPage, pages) => lastPage,
+    }
   );
 
   const formattedData = useMemo(() => {
@@ -36,7 +55,7 @@ export default function Home(): JSX.Element {
       <Header />
 
       <Box maxW={1120} px={20} mx="auto" my={20}>
-        <CardList cards={formattedData} />
+        {/* <CardList cards={formattedData} /> */}
         {/* TODO RENDER LOAD MORE BUTTON IF DATA HAS NEXT PAGE */}
       </Box>
     </>
