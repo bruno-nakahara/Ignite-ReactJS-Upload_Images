@@ -98,7 +98,7 @@ const FileInputBase: ForwardRefRenderFunction<
         },
         cancelToken: source.token,
       } as AxiosRequestConfig;
-
+    
       try {
         const response = await api.post(
           'https://api.imgbb.com/1/upload',

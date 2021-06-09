@@ -1,6 +1,6 @@
 import { Box, Button, Stack, useToast } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 
 import { api } from '../../services/api';
@@ -21,8 +21,8 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
       // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
       required: 'Arquivo obrigatório',
       validate: {
-        lessThan10MB: image => parseInt(image.size) < 10 || 'O arquivo deve ser menor que 10MB',
-        acceptedFormats: image => (/\.(jpeg|png|gif)$/i).test(image.type) || 'Somente são aceitos arquivos PNG, JPEG e GIF', 
+        lessThan10MB: (event: ChangeEvent<HTMLInputElement>) => event.target.files[0].size < 10000000 || 'O arquivo deve ser menor que 10MB',
+        //acceptedFormats: image => (/\.(jpeg|png|gif)$/i).test(image.files[0].type) || 'Somente são aceitos arquivos PNG, JPEG e GIF', 
         
       },
     },
@@ -51,8 +51,17 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const queryClient = useQueryClient();
   const mutation = useMutation(
     // TODO MUTATION API POST REQUEST,
+    async (formData) => {
+      //console.log(formData)
+      return await api.post("api/images", {
+        
+      })
+    },
     {
       // TODO ONSUCCESS MUTATION
+      onSuccess: () => {
+        queryClient.invalidateQueries('api/images')
+      }
     }
   );
 

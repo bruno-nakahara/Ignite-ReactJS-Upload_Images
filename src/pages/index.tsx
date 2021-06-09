@@ -10,13 +10,13 @@ import { Error } from '../components/Error';
 
 const fetchImages = async ({ pageParam = null }) => {
   try {
-    const images = await api.get("/api/images", {
+    const response = await api.get("/api/images", {
       params: {
         after: pageParam
       }
     })
-    
-    console.log(images)
+    //console.log(response)
+    return response
   } catch (error) {
     console.log(error)
   }
@@ -38,24 +38,28 @@ export default function Home(): JSX.Element {
     ,
     // TODO GET AND RETURN NEXT PAGE PARAM
     {
-      getNextPageParam: (lastPage, pages) => lastPage,
+      getNextPageParam: (lastPage) => lastPage.data.after ? lastPage.data.after : null,
+      // getNextPageParam: (lastPage) => console.log(lastPage) 
     }
   );
 
   const formattedData = useMemo(() => {
     // TODO FORMAT AND FLAT DATA ARRAY
+    return data?.pages.map(page => page.data.data).flat()
   }, [data]);
 
   // TODO RENDER LOADING SCREEN
+  if (isLoading) return <Loading />
 
   // TODO RENDER ERROR SCREEN
+  if (isError) return <Error />
 
   return (
     <>
       <Header />
 
       <Box maxW={1120} px={20} mx="auto" my={20}>
-        {/* <CardList cards={formattedData} /> */}
+        <CardList cards={formattedData} />
         {/* TODO RENDER LOAD MORE BUTTON IF DATA HAS NEXT PAGE */}
       </Box>
     </>
