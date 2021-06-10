@@ -1,6 +1,6 @@
 import { Box, Button, Stack, useToast } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
-import { ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 
 import { api } from '../../services/api';
@@ -9,6 +9,12 @@ import { TextInput } from '../Input/TextInput';
 
 interface FormAddImageProps {
   closeModal: () => void;
+}
+
+interface mutationData {
+  title: string;
+  description: string;
+  url: string;
 }
 
 export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
@@ -21,9 +27,8 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
       // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
       required: 'Arquivo obrigatório',
       validate: {
-        lessThan10MB: (event: ChangeEvent<HTMLInputElement>) => event.target.files[0].size < 10000000 || 'O arquivo deve ser menor que 10MB',
-        //acceptedFormats: image => (/\.(jpeg|png|gif)$/i).test(image.files[0].type) || 'Somente são aceitos arquivos PNG, JPEG e GIF', 
-        
+        lessThan10MB: image => image[0].size < (1024 * 1024 * 10) || 'O arquivo deve ser menor que 10MB',
+        acceptedFormats: image => image[0].type !== /image\/(jpeg|jpg|png|gif)$/i || 'Somente são aceitos arquivos PNG, JPEG e GIF', 
       },
     },
     title: {
@@ -51,16 +56,13 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const queryClient = useQueryClient();
   const mutation = useMutation(
     // TODO MUTATION API POST REQUEST,
-    async (formData) => {
-      //console.log(formData)
-      return await api.post("api/images", {
-        
-      })
+    async (data: mutationData) => {
+      await api.post("api/images", data)
     },
     {
       // TODO ONSUCCESS MUTATION
       onSuccess: () => {
-        queryClient.invalidateQueries('api/images')
+        queryClient.invalidateQueries('images')
       }
     }
   );
@@ -75,15 +77,39 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   } = useForm();
   const { errors } = formState;
 
-  const onSubmit = async (data: Record<string, unknown>): Promise<void> => {
+  const onSubmit = async (data: Record<string, string>): Promise<void> => {
     try {
       // TODO SHOW ERROR TOAST IF IMAGE URL DOES NOT EXISTS
+      if (!imageUrl) {
+        toast({
+          title: "Imagem não adicionada",
+          description: "É preciso adicionar e aguardar o upload de uma imagem antes de realizar o cadastro.",
+        })
+        return
+      }
       // TODO EXECUTE ASYNC MUTATION
+      await mutation.mutateAsync({
+        title: data.title,
+        description: data.description,
+        url: imageUrl,
+      })
       // TODO SHOW SUCCESS TOAST
+      toast({
+        title: 'Imagem cadastrada',
+        description: 'Sua imagem foi cadastrada com sucesso.',
+      })
     } catch {
       // TODO SHOW ERROR TOAST IF SUBMIT FAILED
+      toast({
+        title: 'Falha no cadastro',
+        description: 'Ocorreu um erro ao tentar cadastrar a sua imagem.',
+      })
     } finally {
       // TODO CLEAN FORM, STATES AND CLOSE MODAL
+      setImageUrl('')
+      setLocalImageUrl('')
+      reset()
+      closeModal()
     }
   };
 
@@ -97,9 +123,9 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
           setError={setError}
           trigger={trigger}
           // TODO SEND IMAGE ERRORS
-          error={errors.file}
+          error={errors.image}
           // TODO REGISTER IMAGE INPUT WITH VALIDATIONS
-          {...register("file", formValidations.image)}
+          {...register("image", formValidations.image)}
         />
 
         <TextInput
